@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/Sheikh-Fahad-Ahmed/jsontools/internal/helper"
+	"github.com/tidwall/gjson"
 )
 
 func main() {
@@ -20,9 +24,31 @@ func main() {
 	fmt.Println("input path: ", *inputPath)
 	fmt.Println("output path: ", *outputPath)
 
-	// ------------ Load------------
-	// scanner := bufio.NewReader(os.Stdin)
-	
+	// ------------ Load ------------
+
+	jsonByte, err := os.ReadFile(*inputPath)
+	helper.CheckErr(err)
+
+	jsonStr := string(jsonByte)
+
+	fieldCount := gjson.Parse(jsonStr).Get("@keys.#")
+
+	fmt.Println("fieldCount:", fieldCount.Int())
+	fmt.Println("Loaded: ", *inputPath)
+
+	// ------------ Verify Step ------------
+	scanner := bufio.NewReader(os.Stdin)
+
+	fmt.Println("── Verify field ──")
+	fieldName := helper.Prompt(scanner, "Field to verify:")
+	result := gjson.Get(jsonStr, fieldName)
+	if !result.Exists() {
+		fmt.Printf("Field %s not found\n", fieldName)
+	} else {
+		fmt.Printf("Current value %s\n", fieldName)
+		answer := helper.Prompt(scanner, "Is this correct? (y/n): ")
+		fmt.Println(answer)
+	}
 
 }
 
