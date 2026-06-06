@@ -5,11 +5,16 @@ import (
 	"fmt"
 )
 
-func prompt(reader *bufio.Reader, label string) string {
+func Prompt(reader *bufio.Reader, label string) string {
 	fmt.Print(label)
 	line, _, err := reader.ReadLine()
-	if err != nil {
-		panic(err)
-	}
+	CheckErr(err)
+	
 	return string(line)
+}
+
+func CheckErr(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
