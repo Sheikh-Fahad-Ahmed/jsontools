@@ -1,5 +1,31 @@
 package main
 
+import (
+	"flag"
+	"fmt"
+	"os"
+)
+
+func main() {
+	// ------------ Command-line arguments ------------
+	inputPath := flag.String("input", "default", "provide an input file (required)")
+	outputPath := flag.String("output", "out.yaml", "provide an output file")
+	flag.Parse()
+
+	if *inputPath == "--output" {
+		fmt.Println("jsontool --input <file> [--output <file>]")
+		os.Exit(1)
+	}
+
+	fmt.Println("input path: ", *inputPath)
+	fmt.Println("output path: ", *outputPath)
+
+	// ------------ Load------------
+	// scanner := bufio.NewReader(os.Stdin)
+	
+
+}
+
 // module:
 // github.com/{user}/getjson
 
