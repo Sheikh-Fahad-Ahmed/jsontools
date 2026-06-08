@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/divakarans/setjson/setter"
 	"github.com/Sheikh-Fahad-Ahmed/jsontools/internal/helper"
 	"github.com/tidwall/gjson"
+	"github.com/vharshitha0089/json2yaml/converter"
 )
 
 func main() {
@@ -21,8 +23,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("input path: ", *inputPath)
-	fmt.Println("output path: ", *outputPath)
 
 	// ------------ Load ------------
 
@@ -33,25 +33,51 @@ func main() {
 
 	fieldCount := gjson.Parse(jsonStr).Get("@keys.#")
 
-	fmt.Println("fieldCount:", fieldCount.Int())
-	fmt.Println("Loaded: ", *inputPath)
+
+	fmt.Printf("\n\nLoaded: %s (%d fields)\n\n", *inputPath, fieldCount.Int())
 
 	// ------------ Verify Step ------------
 	scanner := bufio.NewReader(os.Stdin)
-
+	fmt.Println()
 	fmt.Println("── Verify field ──")
 	fieldName := helper.Prompt(scanner, "Field to verify:")
 	result := gjson.Get(jsonStr, fieldName)
 	if !result.Exists() {
 		fmt.Printf("Field %s not found\n", fieldName)
 	} else {
-		fmt.Printf("Current value %s\n", fieldName)
+		fmt.Printf("Current value %s\n", result.String())
 		answer := helper.Prompt(scanner, "Is this correct? (y/n): ")
-		fmt.Println(answer)
+		if answer == "n" {
+			newVal := helper.Prompt(scanner, "Enter new value:")
+			jsonStr = setter.Setjson(jsonStr, fieldName, newVal) //------------------------------------
+			fmt.Printf("✓ Updated %s → %s\n\n", fieldName, newVal)
+		}
 	}
 
+	// ------------ Update Field ------------
+	fmt.Println("── Update field ──")
+	fieldName = helper.Prompt(scanner, "Field to update: ")
+	result = gjson.Get(jsonStr, fieldName)
+	if !result.Exists() {
+		fmt.Printf("Field %s not found", fieldName)
+	} else {
+		fmt.Printf("Current value: %s\n", result.String())
+		newVal := helper.Prompt(scanner, "Enter new value: ")
+		jsonStr = setter.Setjson(jsonStr, fieldName, newVal) //------------------------------------
+		fmt.Printf("✓ Updated %s → %s\n\n", fieldName, newVal)
+	}
+
+	// ------------ Convert To YAML ------------
+	fmt.Println("Converting to YAML...")
+	yamlStr := converter.Convert(jsonStr)
+
+	err = os.WriteFile(*outputPath, []byte(yamlStr), 0644)
+	helper.CheckErr(err)
+	fmt.Printf("✓ Wrote %s\n", *outputPath)
+	fmt.Printf("\nDone.\n\n")
 }
 
+// --------------------------------------------------------------------------------- //
 // module:
 // github.com/{user}/getjson
 
